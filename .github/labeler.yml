@@ -18,8 +18,6 @@
 #
 # Pull Request Labeler Github Action Configuration: https://github.com/marketplace/actions/labeler
 
-name: Add Scope Label
-
 llm:
   - hugegraph-llm/**/*
 ml:
