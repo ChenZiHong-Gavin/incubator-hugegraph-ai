@@ -21,6 +21,9 @@ from hugegraph_llm.operators.kg_construction_task import KgBuilder
 
 
 if __name__ == "__main__":
+
+
+
     builder = KgBuilder(LLMs().get_llm())
 
     TEXT = (
