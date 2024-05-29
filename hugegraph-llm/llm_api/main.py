@@ -27,8 +27,14 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from transformers import AutoModelForCausalLM, AutoTokenizer, Qwen2ForCausalLM, \
-    Qwen2Tokenizer, GenerationConfig
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    Qwen2ForCausalLM,
+    Qwen2Tokenizer,
+    GenerationConfig,
+)
+
 if sys.version_info >= (3, 12):  # >=3.12
     from typing import TypedDict
 else:  # <3.12
@@ -57,14 +63,19 @@ class Role(Enum):
 
 
 class QwenChatModel:
-    def __init__(self, model_name_or_path: str, device: str = "cuda", max_new_tokens: int = 512,
-                 generation_config: GenerationConfig = None):
+    def __init__(
+        self,
+        model_name_or_path: str,
+        device: str = "cuda",
+        max_new_tokens: int = 512,
+        generation_config: GenerationConfig = None,
+    ):
         self.model: Qwen2ForCausalLM = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path,
-            torch_dtype="auto",
-            device_map=device
+            model_name_or_path, torch_dtype="auto", device_map=device
         )
-        self.tokenizer: Qwen2Tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        self.tokenizer: Qwen2Tokenizer = AutoTokenizer.from_pretrained(
+            model_name_or_path
+        )
         self.device = torch.device(device)
         self.max_new_tokens = max_new_tokens
         self.generation_config = generation_config
@@ -72,9 +83,7 @@ class QwenChatModel:
     @torch.inference_mode()
     async def achat(self, messages: List[Message]):
         text = self.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True
+            messages, tokenize=False, add_generation_prompt=True
         )
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.device)
         generated_ids = self.model.generate(
@@ -82,10 +91,12 @@ class QwenChatModel:
             max_new_tokens=self.max_new_tokens,
         )
         generated_ids = [
-            output_ids[len(input_ids):]
+            output_ids[len(input_ids) :]
             for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
-        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[
+            0
+        ]
         return response
 
 
@@ -116,14 +127,22 @@ def create_app(chat_model: "QwenChatModel") -> "FastAPI":
         allow_headers=["*"],
     )
 
-    @app.post("/v1/chat/completions", response_model=ChatResponse, status_code=status.HTTP_200_OK)
+    @app.post(
+        "/v1/chat/completions",
+        response_model=ChatResponse,
+        status_code=status.HTTP_200_OK,
+    )
     async def create_chat_completion(request: ChatRequest):
         if len(request.messages) == 0:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid length")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid length"
+            )
 
         if len(request.messages) % 2 == 0:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Only supports u/a/u/a/u...")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only supports u/a/u/a/u...",
+            )
 
         print("* ============= [input] ============= *")
         print(request.messages[-1]["content"])
@@ -141,12 +160,19 @@ def create_app(chat_model: "QwenChatModel") -> "FastAPI":
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(description="Local LLM Api for Hugegraph LLM.")
-    parser.add_argument("--model_name_or_path", type=str, required=True, help="Model name or path")
+    parser.add_argument(
+        "--model_name_or_path", type=str, required=True, help="Model name or path"
+    )
     parser.add_argument("--device", type=str, default="cpu", help="Device to use")
     parser.add_argument("--port", type=int, default=7999, help="Port of the service")
-    parser.add_argument("--max_new_tokens", type=int, default=512,
-                        help="The max number of tokens to generate")
+    parser.add_argument(
+        "--max_new_tokens",
+        type=int,
+        default=512,
+        help="The max number of tokens to generate",
+    )
 
     args = parser.parse_args()
 
@@ -159,5 +185,5 @@ def main():
     uvicorn.run(app, host="0.0.0.0", port=port, workers=1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

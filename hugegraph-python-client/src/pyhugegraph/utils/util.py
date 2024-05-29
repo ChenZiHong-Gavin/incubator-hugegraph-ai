@@ -43,7 +43,9 @@ def check_if_authorized(response):
 
 
 def check_if_success(response, error=None):
-    if (not str(response.status_code).startswith("20")) and check_if_authorized(response):
+    if (not str(response.status_code).startswith("20")) and check_if_authorized(
+        response
+    ):
         if error is None:
             error = NotFoundError(response.content)
         raise error

@@ -82,7 +82,11 @@ class TestInfoExtract(unittest.TestCase):
                     {
                         "name": "Alice",
                         "label": "person",
-                        "properties": {"name": "Alice", "age": "25", "occupation": "lawyer"},
+                        "properties": {
+                            "name": "Alice",
+                            "age": "25",
+                            "occupation": "lawyer",
+                        },
                     },
                     {
                         "name": "Bob",
@@ -100,10 +104,20 @@ class TestInfoExtract(unittest.TestCase):
                         "properties": {"name": "www.bob.com", "url": "www.bob.com"},
                     },
                 ],
-                "edges": [{"start": "Alice", "end": "Bob", "type": "roommate", "properties": {}}],
+                "edges": [
+                    {
+                        "start": "Alice",
+                        "end": "Bob",
+                        "type": "roommate",
+                        "properties": {},
+                    }
+                ],
                 "schema": {
                     "vertices": [
-                        {"vertex_label": "person", "properties": ["name", "age", "occupation"]},
+                        {
+                            "vertex_label": "person",
+                            "properties": ["name", "age", "occupation"],
+                        },
                         {"vertex_label": "webpage", "properties": ["name", "url"]},
                     ],
                     "edges": [

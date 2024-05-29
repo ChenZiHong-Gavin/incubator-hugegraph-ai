@@ -203,7 +203,9 @@ class TraverserManager(HugeParamsBase):
             return response.json()
         return {}
 
-    def template_paths(self, sources, targets, steps, capacity=10000, limit=10, with_vertex=True):
+    def template_paths(
+        self, sources, targets, steps, capacity=10000, limit=10, with_vertex=True
+    ):
         url = f"{self.url}/templatepaths"
         data = {
             "sources": sources,
@@ -240,7 +242,13 @@ class TraverserManager(HugeParamsBase):
         return {}
 
     def customized_crosspoints(
-        self, sources, path_patterns, with_path=True, with_vertex=True, capacity=-1, limit=-1
+        self,
+        sources,
+        path_patterns,
+        with_path=True,
+        with_vertex=True,
+        capacity=-1,
+        limit=-1,
     ):
         url = f"{self.url}/customizedcrosspoints"
         data = {

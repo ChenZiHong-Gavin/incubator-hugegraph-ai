@@ -84,18 +84,20 @@ class CommitToKg:
             properties = edge["properties"]
             for prop in properties:
                 self.schema.propertyKey(prop).asText().ifNotExist().create()
-            self.schema.edgeLabel(edge_label).sourceLabel(source_vertex_label).targetLabel(
-                target_vertex_label
-            ).properties(*properties).nullableKeys(*properties).ifNotExist().create()
+            self.schema.edgeLabel(edge_label).sourceLabel(
+                source_vertex_label
+            ).targetLabel(target_vertex_label).properties(*properties).nullableKeys(
+                *properties
+            ).ifNotExist().create()
 
     def schema_free_mode(self, data):
         self.schema.propertyKey("name").asText().ifNotExist().create()
         self.schema.vertexLabel("vertex").useCustomizeStringId().properties(
             "name"
         ).ifNotExist().create()
-        self.schema.edgeLabel("edge").sourceLabel("vertex").targetLabel("vertex").properties(
-            "name"
-        ).ifNotExist().create()
+        self.schema.edgeLabel("edge").sourceLabel("vertex").targetLabel(
+            "vertex"
+        ).properties("name").ifNotExist().create()
 
         self.schema.indexLabel("vertexByName").onV("vertex").by(
             "name"
