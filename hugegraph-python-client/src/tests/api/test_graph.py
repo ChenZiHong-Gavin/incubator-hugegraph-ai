@@ -39,7 +39,9 @@ class TestGraphManager(unittest.TestCase):
         cls.client.clear_graph_all_data()
 
     def test_add_vertex(self):
-        vertex = self.graph.addVertex("person", {"name": "marko", "age": 29, "city": "Beijing"})
+        vertex = self.graph.addVertex(
+            "person", {"name": "marko", "age": 29, "city": "Beijing"}
+        )
         self.assertIsNotNone(vertex)
 
     def test_add_vertices(self):
@@ -57,7 +59,9 @@ class TestGraphManager(unittest.TestCase):
         self.assertEqual(appended_vertex.properties["city"], "Beijing")
 
     def test_eliminate_vertex(self):
-        vertex = self.graph.addVertex("person", {"name": "marko", "age": 29, "city": "Beijing"})
+        vertex = self.graph.addVertex(
+            "person", {"name": "marko", "age": 29, "city": "Beijing"}
+        )
         self.graph.eliminateVertex(vertex.id, {"city": "Beijing"})
         eliminated_vertex = self.graph.getVertexById(vertex.id)
         self.assertIsNone(eliminated_vertex.properties.get("city"))
@@ -76,7 +80,9 @@ class TestGraphManager(unittest.TestCase):
     def test_get_vertex_by_condition(self):
         self.graph.addVertex("person", {"name": "Alice", "age": 25})
         self.graph.addVertex("person", {"name": "Bob", "age": 30})
-        vertices = self.graph.getVertexByCondition("person", properties={"age": "P.gt(29)"})
+        vertices = self.graph.getVertexByCondition(
+            "person", properties={"age": "P.gt(29)"}
+        )
         self.assertEqual(len(vertices), 1)
         self.assertEqual(vertices[0].properties["name"], "Bob")
 
@@ -91,7 +97,9 @@ class TestGraphManager(unittest.TestCase):
     def test_add_edge(self):
         vertex1 = self.graph.addVertex("person", {"name": "Alice", "age": 20})
         vertex2 = self.graph.addVertex("person", {"name": "Bob", "age": 23})
-        edge = self.graph.addEdge("knows", vertex1.id, vertex2.id, {"date": "2012-01-10"})
+        edge = self.graph.addEdge(
+            "knows", vertex1.id, vertex2.id, {"date": "2012-01-10"}
+        )
         self.assertIsNotNone(edge)
 
     def test_add_edges(self):
@@ -100,8 +108,22 @@ class TestGraphManager(unittest.TestCase):
 
         vertices = self.graph.addEdges(
             [
-                ("knows", vertex1.id, vertex2.id, "person", "person", {"date": "2012-01-10"}),
-                ("knows", vertex2.id, vertex1.id, "person", "person", {"date": "2012-01-10"}),
+                (
+                    "knows",
+                    vertex1.id,
+                    vertex2.id,
+                    "person",
+                    "person",
+                    {"date": "2012-01-10"},
+                ),
+                (
+                    "knows",
+                    vertex2.id,
+                    vertex1.id,
+                    "person",
+                    "person",
+                    {"date": "2012-01-10"},
+                ),
             ]
         )
         self.assertEqual(len(vertices), 2)
@@ -109,14 +131,18 @@ class TestGraphManager(unittest.TestCase):
     def test_append_edge(self):
         vertex1 = self.graph.addVertex("person", {"name": "Alice", "age": 20})
         vertex2 = self.graph.addVertex("person", {"name": "Bob", "age": 23})
-        edge = self.graph.addEdge("knows", vertex1.id, vertex2.id, {"date": "2012-01-10"})
+        edge = self.graph.addEdge(
+            "knows", vertex1.id, vertex2.id, {"date": "2012-01-10"}
+        )
         appended_edge = self.graph.appendEdge(edge.id, {"city": "Beijing"})
         self.assertEqual(appended_edge.properties["city"], "Beijing")
 
     def test_eliminate_edge(self):
         vertex1 = self.graph.addVertex("person", {"name": "Alice", "age": 20})
         vertex2 = self.graph.addVertex("person", {"name": "Bob", "age": 23})
-        edge = self.graph.addEdge("knows", vertex1.id, vertex2.id, {"date": "2012-01-10"})
+        edge = self.graph.addEdge(
+            "knows", vertex1.id, vertex2.id, {"date": "2012-01-10"}
+        )
         self.graph.eliminateEdge(edge.id, {"city": "Beijing"})
         eliminated_edge = self.graph.getEdgeById(edge.id)
         self.assertIsNone(eliminated_edge.properties.get("city"))
@@ -124,7 +150,9 @@ class TestGraphManager(unittest.TestCase):
     def test_get_edge_by_id(self):
         vertex1 = self.graph.addVertex("person", {"name": "Alice", "age": 20})
         vertex2 = self.graph.addVertex("person", {"name": "Bob", "age": 23})
-        edge = self.graph.addEdge("knows", vertex1.id, vertex2.id, {"date": "2012-01-10"})
+        edge = self.graph.addEdge(
+            "knows", vertex1.id, vertex2.id, {"date": "2012-01-10"}
+        )
         retrieved_edge = self.graph.getEdgeById(edge.id)
         self.assertEqual(retrieved_edge.id, edge.id)
 
@@ -139,7 +167,9 @@ class TestGraphManager(unittest.TestCase):
     def test_remove_edge_by_id(self):
         vertex1 = self.graph.addVertex("person", {"name": "Alice", "age": 20})
         vertex2 = self.graph.addVertex("person", {"name": "Bob", "age": 23})
-        edge = self.graph.addEdge("knows", vertex1.id, vertex2.id, {"date": "2012-01-10"})
+        edge = self.graph.addEdge(
+            "knows", vertex1.id, vertex2.id, {"date": "2012-01-10"}
+        )
         self.graph.removeEdgeById(edge.id)
         try:
             self.graph.getEdgeById(edge.id)
@@ -155,7 +185,11 @@ class TestGraphManager(unittest.TestCase):
     def test_get_edges_by_id(self):
         vertex1 = self.graph.addVertex("person", {"name": "Alice", "age": 20})
         vertex2 = self.graph.addVertex("person", {"name": "Bob", "age": 23})
-        edge1 = self.graph.addEdge("knows", vertex1.id, vertex2.id, {"date": "2012-01-10"})
-        edge2 = self.graph.addEdge("knows", vertex2.id, vertex1.id, {"date": "2012-01-10"})
+        edge1 = self.graph.addEdge(
+            "knows", vertex1.id, vertex2.id, {"date": "2012-01-10"}
+        )
+        edge2 = self.graph.addEdge(
+            "knows", vertex2.id, vertex1.id, {"date": "2012-01-10"}
+        )
         edges = self.graph.getEdgesById([edge1.id, edge2.id])
         self.assertEqual(len(edges), 2)
