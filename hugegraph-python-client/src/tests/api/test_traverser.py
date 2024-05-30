@@ -47,16 +47,23 @@ class TestTraverserManager(unittest.TestCase):
         pass
 
     def test_traverser_operations(self):
-        marko = self.graph.getVertexByCondition("person", properties={"name": "marko"})[0].id
-        josh = self.graph.getVertexByCondition("person", properties={"name": "josh"})[0].id
-        ripple = self.graph.getVertexByCondition("software", properties={"name": "ripple"})[0].id
+        marko = self.graph.getVertexByCondition("person", properties={"name": "marko"})[
+            0
+        ].id
+        josh = self.graph.getVertexByCondition("person", properties={"name": "josh"})[
+            0
+        ].id
+        ripple = self.graph.getVertexByCondition(
+            "software", properties={"name": "ripple"}
+        )[0].id
 
         k_out_result = self.traverser.k_out(marko, 2)
         self.assertEqual(k_out_result["vertices"], ["1:peter", "2:ripple"])
 
         k_neighbor_result = self.traverser.k_neighbor(marko, 2)
         self.assertEqual(
-            k_neighbor_result["vertices"], ["1:peter", "1:josh", "2:lop", "2:ripple", "1:vadas"]
+            k_neighbor_result["vertices"],
+            ["1:peter", "1:josh", "2:lop", "2:ripple", "1:vadas"],
         )
 
         same_neighbors_result = self.traverser.same_neighbors(marko, josh)
@@ -66,11 +73,14 @@ class TestTraverserManager(unittest.TestCase):
         self.assertEqual(jaccard_similarity_result["jaccard_similarity"], 0.2)
 
         shortest_path_result = self.traverser.shortest_path(marko, ripple, 3)
-        self.assertEqual(shortest_path_result["path"], ["1:marko", "1:josh", "2:ripple"])
+        self.assertEqual(
+            shortest_path_result["path"], ["1:marko", "1:josh", "2:ripple"]
+        )
 
         all_shortest_paths_result = self.traverser.all_shortest_paths(marko, ripple, 3)
         self.assertEqual(
-            all_shortest_paths_result["paths"], [{"objects": ["1:marko", "1:josh", "2:ripple"]}]
+            all_shortest_paths_result["paths"],
+            [{"objects": ["1:marko", "1:josh", "2:ripple"]}],
         )
 
         weighted_shortest_path_result = self.traverser.weighted_shortest_path(
@@ -80,14 +90,19 @@ class TestTraverserManager(unittest.TestCase):
             weighted_shortest_path_result["vertices"], ["1:marko", "1:josh", "2:ripple"]
         )
 
-        single_source_shortest_path_result = self.traverser.single_source_shortest_path(marko, 2)
+        single_source_shortest_path_result = self.traverser.single_source_shortest_path(
+            marko, 2
+        )
         self.assertEqual(
             single_source_shortest_path_result["paths"],
             {
                 "1:peter": {"weight": 2.0, "vertices": ["1:marko", "2:lop", "1:peter"]},
                 "1:josh": {"weight": 1.0, "vertices": ["1:marko", "1:josh"]},
                 "2:lop": {"weight": 1.0, "vertices": ["1:marko", "2:lop"]},
-                "2:ripple": {"weight": 2.0, "vertices": ["1:marko", "1:josh", "2:ripple"]},
+                "2:ripple": {
+                    "weight": 2.0,
+                    "vertices": ["1:marko", "1:josh", "2:ripple"],
+                },
                 "1:vadas": {"weight": 1.0, "vertices": ["1:marko", "1:vadas"]},
             },
         )
@@ -116,7 +131,10 @@ class TestTraverserManager(unittest.TestCase):
         paths_result = self.traverser.paths(marko, josh, 2)
         self.assertEqual(
             paths_result["paths"],
-            [{"objects": ["1:marko", "2:lop", "1:josh"]}, {"objects": ["1:marko", "1:josh"]}],
+            [
+                {"objects": ["1:marko", "2:lop", "1:josh"]},
+                {"objects": ["1:marko", "1:josh"]},
+            ],
         )
 
         customized_paths_result = self.traverser.customized_paths(
@@ -132,7 +150,8 @@ class TestTraverserManager(unittest.TestCase):
             ],
         )
         self.assertEqual(
-            customized_paths_result["paths"], [{"objects": ["1:marko", "2:lop"], "weights": [8.0]}]
+            customized_paths_result["paths"],
+            [{"objects": ["1:marko", "2:lop"], "weights": [8.0]}],
         )
 
         sources = {"ids": [], "label": "person", "properties": {"name": "vadas"}}
@@ -185,7 +204,9 @@ class TestTraverserManager(unittest.TestCase):
         )
 
         sources = {"ids": ["2:lop", "2:ripple"]}
-        path_patterns = [{"steps": [{"direction": "IN", "labels": ["created"], "max_degree": -1}]}]
+        path_patterns = [
+            {"steps": [{"direction": "IN", "labels": ["created"], "max_degree": -1}]}
+        ]
         customized_crosspoints_result = self.traverser.customized_crosspoints(
             sources, path_patterns
         )
@@ -193,7 +214,8 @@ class TestTraverserManager(unittest.TestCase):
 
         rings_result = self.traverser.rings(marko, 3)
         self.assertEqual(
-            rings_result["rings"], [{"objects": ["1:marko", "2:lop", "1:josh", "1:marko"]}]
+            rings_result["rings"],
+            [{"objects": ["1:marko", "2:lop", "1:josh", "1:marko"]}],
         )
 
         rays_result = self.traverser.rays(marko, 2)
@@ -253,7 +275,10 @@ class TestTraverserManager(unittest.TestCase):
                     "outVLabel": "person",
                     "inV": "2:lop",
                     "inVLabel": "software",
-                    "properties": {"city": "Beijing", "date": "2016-01-10 00:00:00.000"},
+                    "properties": {
+                        "city": "Beijing",
+                        "date": "2016-01-10 00:00:00.000",
+                    },
                 }
             ],
         )

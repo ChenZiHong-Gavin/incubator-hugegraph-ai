@@ -61,9 +61,9 @@ class ClientUtils:
         schema.vertexLabel("software").properties("name", "lang", "price").primaryKeys(
             "name"
         ).nullableKeys("price").ifNotExist().create()
-        schema.vertexLabel("book").useCustomizeStringId().properties("name", "price").nullableKeys(
-            "price"
-        ).ifNotExist().create()
+        schema.vertexLabel("book").useCustomizeStringId().properties(
+            "name", "price"
+        ).nullableKeys("price").ifNotExist().create()
 
     def init_edge_label(self):
         schema = self.schema
@@ -72,21 +72,27 @@ class ClientUtils:
         ).multiTimes().properties("date", "city").sortKeys("date").nullableKeys(
             "city"
         ).ifNotExist().create()
-        schema.edgeLabel("created").sourceLabel("person").targetLabel("software").properties(
-            "date", "city"
-        ).nullableKeys("city").ifNotExist().create()
+        schema.edgeLabel("created").sourceLabel("person").targetLabel(
+            "software"
+        ).properties("date", "city").nullableKeys("city").ifNotExist().create()
 
     def init_index_label(self):
         schema = self.schema
-        schema.indexLabel("personByCity").onV("person").by("city").secondary().ifNotExist().create()
-        schema.indexLabel("personByAge").onV("person").by("age").range().ifNotExist().create()
+        schema.indexLabel("personByCity").onV("person").by(
+            "city"
+        ).secondary().ifNotExist().create()
+        schema.indexLabel("personByAge").onV("person").by(
+            "age"
+        ).range().ifNotExist().create()
         schema.indexLabel("softwareByPrice").onV("software").by(
             "price"
         ).range().ifNotExist().create()
         schema.indexLabel("softwareByLang").onV("software").by(
             "lang"
         ).secondary().ifNotExist().create()
-        schema.indexLabel("knowsByDate").onE("knows").by("date").secondary().ifNotExist().create()
+        schema.indexLabel("knowsByDate").onE("knows").by(
+            "date"
+        ).secondary().ifNotExist().create()
         schema.indexLabel("createdByDate").onE("created").by(
             "date"
         ).secondary().ifNotExist().create()
@@ -110,17 +116,27 @@ class ClientUtils:
 
         self.graph.addEdge("knows", marko_id, vadas_id, {"date": "2012-01-10"})
         self.graph.addEdge("knows", marko_id, josh_id, {"date": "2013-01-10"})
-        self.graph.addEdge("created", marko_id, lop_id, {"date": "2014-01-10", "city": "Shanghai"})
-        self.graph.addEdge("created", josh_id, ripple_id, {"date": "2015-01-10", "city": "Beijing"})
-        self.graph.addEdge("created", josh_id, lop_id, {"date": "2016-01-10", "city": "Beijing"})
-        self.graph.addEdge("created", peter_id, lop_id, {"date": "2017-01-10", "city": "Hongkong"})
+        self.graph.addEdge(
+            "created", marko_id, lop_id, {"date": "2014-01-10", "city": "Shanghai"}
+        )
+        self.graph.addEdge(
+            "created", josh_id, ripple_id, {"date": "2015-01-10", "city": "Beijing"}
+        )
+        self.graph.addEdge(
+            "created", josh_id, lop_id, {"date": "2016-01-10", "city": "Beijing"}
+        )
+        self.graph.addEdge(
+            "created", peter_id, lop_id, {"date": "2017-01-10", "city": "Hongkong"}
+        )
 
     def _get_vertex_id(self, label, properties):
         res = self._get_vertex(label, properties)
         return res.id
 
     def _get_vertex(self, label, properties):
-        lst = self.graph.getVertexByCondition(label=label, limit=1, properties=properties)
+        lst = self.graph.getVertexByCondition(
+            label=label, limit=1, properties=properties
+        )
         assert 1 == len(lst), "Can't find vertex."
         return lst[0]
 

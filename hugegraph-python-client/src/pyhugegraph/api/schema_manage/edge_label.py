@@ -147,9 +147,7 @@ class EdgeLabel(HugeParamsBase):
             if key in dic:
                 data[key] = dic[key]
 
-        url = (
-            f'{self._host}/graphs/{self._graph_name}/schema/edgelabels/{data["name"]}?action=append'
-        )
+        url = f'{self._host}/graphs/{self._graph_name}/schema/edgelabels/{data["name"]}?action=append'
         response = self.__session.put(
             url, data=json.dumps(data), auth=self._auth, headers=self._headers
         )

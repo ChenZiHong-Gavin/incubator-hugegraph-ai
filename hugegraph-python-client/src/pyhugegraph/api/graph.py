@@ -105,9 +105,7 @@ class GraphManager(HugeParamsBase):
         return None
 
     def eliminateVertex(self, vertex_id, properties):
-        url = (
-            f'{self._host}/graphs/{self._graph_name}/graph/vertices/"{vertex_id}"?action=eliminate'
-        )
+        url = f'{self._host}/graphs/{self._graph_name}/graph/vertices/"{vertex_id}"?action=eliminate'
 
         data = {"properties": properties}
         response = self.__session.put(
@@ -130,7 +128,9 @@ class GraphManager(HugeParamsBase):
         response = self.__session.get(
             url, auth=self._auth, headers=self._headers, timeout=self._timeout
         )
-        if check_if_success(response, NotFoundError(f"Vertex not found: {str(response.content)}")):
+        if check_if_success(
+            response, NotFoundError(f"Vertex not found: {str(response.content)}")
+        ):
             res = VertexData(json.loads(response.content))
             return res
         return None
@@ -151,7 +151,9 @@ class GraphManager(HugeParamsBase):
         response = self.__session.get(
             url, auth=self._auth, headers=self._headers, timeout=self._timeout
         )
-        if check_if_success(response, NotFoundError(f"Vertex not found: {str(response.content)}")):
+        if check_if_success(
+            response, NotFoundError(f"Vertex not found: {str(response.content)}")
+        ):
             res = []
             for item in json.loads(response.content)["vertices"]:
                 res.append(VertexData(item))
@@ -177,7 +179,9 @@ class GraphManager(HugeParamsBase):
         response = self.__session.get(
             url, auth=self._auth, headers=self._headers, timeout=self._timeout
         )
-        if check_if_success(response, NotFoundError(f"Vertex not found: {str(response.content)}")):
+        if check_if_success(
+            response, NotFoundError(f"Vertex not found: {str(response.content)}")
+        ):
             res = []
             for item in json.loads(response.content)["vertices"]:
                 res.append(VertexData(item))
@@ -211,7 +215,9 @@ class GraphManager(HugeParamsBase):
             headers=self._headers,
             timeout=self._timeout,
         )
-        if check_if_success(response, CreateError(f"created edge failed: {str(response.content)}")):
+        if check_if_success(
+            response, CreateError(f"created edge failed: {str(response.content)}")
+        ):
             res = EdgeData(json.loads(response.content))
             return res
         return None
@@ -258,7 +264,9 @@ class GraphManager(HugeParamsBase):
             headers=self._headers,
             timeout=self._timeout,
         )
-        if check_if_success(response, UpdateError(f"append edge failed: {str(response.content)}")):
+        if check_if_success(
+            response, UpdateError(f"append edge failed: {str(response.content)}")
+        ):
             res = EdgeData(json.loads(response.content))
             return res
         return None
@@ -287,7 +295,9 @@ class GraphManager(HugeParamsBase):
         response = self.__session.get(
             url, auth=self._auth, headers=self._headers, timeout=self._timeout
         )
-        if check_if_success(response, NotFoundError(f"not found edge: {str(response.content)}")):
+        if check_if_success(
+            response, NotFoundError(f"not found edge: {str(response.content)}")
+        ):
             res = EdgeData(json.loads(response.content))
             return res
         return None
@@ -323,7 +333,9 @@ class GraphManager(HugeParamsBase):
         response = self.__session.get(
             url, auth=self._auth, headers=self._headers, timeout=self._timeout
         )
-        if check_if_success(response, NotFoundError(f"not found edges: {str(response.content)}")):
+        if check_if_success(
+            response, NotFoundError(f"not found edges: {str(response.content)}")
+        ):
             res = []
             for item in json.loads(response.content)["edges"]:
                 res.append(EdgeData(item))
@@ -336,7 +348,9 @@ class GraphManager(HugeParamsBase):
         response = self.__session.delete(
             url, auth=self._auth, headers=self._headers, timeout=self._timeout
         )
-        if check_if_success(response, RemoveError(f"remove edge failed: {str(response.content)}")):
+        if check_if_success(
+            response, RemoveError(f"remove edge failed: {str(response.content)}")
+        ):
             return response.content
         return None
 

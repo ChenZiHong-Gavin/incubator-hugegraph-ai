@@ -40,21 +40,33 @@ def init_hg_test_data():
     schema.vertexLabel("Person").properties(
         "name", "birthDate"
     ).useCustomizeStringId().ifNotExist().create()
-    schema.vertexLabel("Movie").properties("name").useCustomizeStringId().ifNotExist().create()
-    schema.edgeLabel("ActedIn").sourceLabel("Person").targetLabel("Movie").ifNotExist().create()
+    schema.vertexLabel("Movie").properties(
+        "name"
+    ).useCustomizeStringId().ifNotExist().create()
+    schema.edgeLabel("ActedIn").sourceLabel("Person").targetLabel(
+        "Movie"
+    ).ifNotExist().create()
 
-    schema.indexLabel("PersonByName").onV("Person").by("name").secondary().ifNotExist().create()
-    schema.indexLabel("MovieByName").onV("Movie").by("name").secondary().ifNotExist().create()
+    schema.indexLabel("PersonByName").onV("Person").by(
+        "name"
+    ).secondary().ifNotExist().create()
+    schema.indexLabel("MovieByName").onV("Movie").by(
+        "name"
+    ).secondary().ifNotExist().create()
 
     graph = client.graph()
-    graph.addVertex("Person", {"name": "Al Pacino", "birthDate": "1940-04-25"}, id="Al Pacino")
+    graph.addVertex(
+        "Person", {"name": "Al Pacino", "birthDate": "1940-04-25"}, id="Al Pacino"
+    )
     graph.addVertex(
         "Person",
         {"name": "Robert De Niro", "birthDate": "1943-08-17"},
         id="Robert De Niro",
     )
     graph.addVertex("Movie", {"name": "The Godfather"}, id="The Godfather")
-    graph.addVertex("Movie", {"name": "The Godfather Part II"}, id="The Godfather Part II")
+    graph.addVertex(
+        "Movie", {"name": "The Godfather Part II"}, id="The Godfather Part II"
+    )
     graph.addVertex(
         "Movie",
         {"name": "The Godfather Coda The Death of Michael Corleone"},
@@ -63,7 +75,9 @@ def init_hg_test_data():
 
     graph.addEdge("ActedIn", "Al Pacino", "The Godfather", {})
     graph.addEdge("ActedIn", "Al Pacino", "The Godfather Part II", {})
-    graph.addEdge("ActedIn", "Al Pacino", "The Godfather Coda The Death of Michael Corleone", {})
+    graph.addEdge(
+        "ActedIn", "Al Pacino", "The Godfather Coda The Death of Michael Corleone", {}
+    )
     graph.addEdge("ActedIn", "Robert De Niro", "The Godfather Part II", {})
     schema.getSchema()
     graph.close()
@@ -122,13 +136,27 @@ def get_hg_client():
 
 
 def init_config(
-        ip, port, user, pwd, graph, type, api_key, secret_key, llm_url, model_name, max_token
+    ip,
+    port,
+    user,
+    pwd,
+    graph,
+    type,
+    api_key,
+    secret_key,
+    llm_url,
+    model_name,
+    max_token,
 ):
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    root_dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
     config_file = os.path.join(root_dir, "hugegraph_llm", "config", "config.ini")
 
     config = Config(config_file=config_file, section=Constants.HUGEGRAPH_CONFIG)
-    config.update_config({"ip": ip, "port": port, "user": user, "pwd": pwd, "graph": graph})
+    config.update_config(
+        {"ip": ip, "port": port, "user": user, "pwd": pwd, "graph": graph}
+    )
 
     config = Config(config_file=config_file, section="llm")
     config.update_config(
@@ -170,7 +198,7 @@ if __name__ == "__main__":
                 gr.Textbox(value="", label="secret_key"),
                 gr.Textbox(
                     value="https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/"
-                          "chat/completions_pro?access_token=",
+                    "chat/completions_pro?access_token=",
                     label="llm_url",
                 ),
                 gr.Textbox(value="wenxin", label="model_name"),
@@ -179,7 +207,9 @@ if __name__ == "__main__":
         with gr.Row():
             out = gr.Textbox(label="Output")
         btn = gr.Button("Initialize configs")
-        btn.click(fn=init_config, inputs=inp + inp2, outputs=out)  # pylint: disable=no-member
+        btn.click(
+            fn=init_config, inputs=inp + inp2, outputs=out
+        )  # pylint: disable=no-member
 
         gr.Markdown(
             """## 1. build knowledge graph
@@ -247,12 +277,18 @@ if __name__ == "__main__":
             inp = []
             out = gr.Textbox(label="Output")
         btn = gr.Button("Initialize HugeGraph test data")
-        btn.click(fn=init_hg_test_data, inputs=inp, outputs=out)  # pylint: disable=no-member
+        # pylint: disable=no-member
+        btn.click(
+            fn=init_hg_test_data, inputs=inp, outputs=out
+        )
 
         with gr.Row():
             inp = gr.Textbox(value="g.V().limit(10)", label="Gremlin query")
             out = gr.Textbox(label="Output")
         btn = gr.Button("Run gremlin query on HugeGraph")
-        btn.click(fn=run_gremlin_query, inputs=inp, outputs=out)  # pylint: disable=no-member
+        # pylint: disable=no-member
+        btn.click(
+            fn=run_gremlin_query, inputs=inp, outputs=out
+        )
     app = gr.mount_gradio_app(app, hugegraph_llm, path="/")
     uvicorn.run(app, host="0.0.0.0", port=8001)
