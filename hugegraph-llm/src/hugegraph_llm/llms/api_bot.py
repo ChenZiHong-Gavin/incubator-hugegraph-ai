@@ -33,18 +33,20 @@ class ApiBotClient(BaseLLM):
 
     @retry(tries=3, delay=1)
     def generate(
-            self,
-            messages: Optional[List[Dict[str, Any]]] = None,
-            prompt: Optional[str] = None,
+        self,
+        messages: Optional[List[Dict[str, Any]]] = None,
+        prompt: Optional[str] = None,
     ) -> str:
         if messages is None:
             assert prompt is not None, "Messages or prompt must be provided."
             messages = [{"role": "user", "content": prompt}]
         url = self.base_url
 
-        payload = json.dumps({
-            "messages": messages,
-        })
+        payload = json.dumps(
+            {
+                "messages": messages,
+            }
+        )
         headers = {"Content-Type": "application/json"}
         response = requests.request("POST", url, headers=headers, data=payload, timeout=30)
         if response.status_code != 200:
@@ -55,10 +57,10 @@ class ApiBotClient(BaseLLM):
         return response_json["content"]
 
     def generate_streaming(
-            self,
-            messages: Optional[List[Dict[str, Any]]] = None,
-            prompt: Optional[str] = None,
-            on_token_callback: Callable = None,
+        self,
+        messages: Optional[List[Dict[str, Any]]] = None,
+        prompt: Optional[str] = None,
+        on_token_callback: Callable = None,
     ) -> str:
         return self.generate(messages, prompt)
 
