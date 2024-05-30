@@ -31,8 +31,12 @@ class Config:
 
     def init_config_file(self, config_file):
         if config_file is None:
-            root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            config_file = os.path.join(root_dir, "hugegraph_llm", "config", "config.ini")
+            root_dir = os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            )
+            config_file = os.path.join(
+                root_dir, "hugegraph_llm", "config", "config.ini"
+            )
 
         if not os.path.exists(config_file):
             config = configparser.ConfigParser()

@@ -272,7 +272,9 @@ class AuthManager(HugeParamsBase):
         )
         check_if_success(response, NotFoundError(response.content))
 
-    def update_target(self, target_id, target_name, target_graph, target_url, target_resources):
+    def update_target(
+        self, target_id, target_name, target_graph, target_url, target_resources
+    ):
         url = f"{self._host}/graphs/{self._graph_name}/auth/targets/{target_id}"
         data = {
             "target_name": target_name,
