@@ -278,17 +278,13 @@ if __name__ == "__main__":
             out = gr.Textbox(label="Output")
         btn = gr.Button("Initialize HugeGraph test data")
         # pylint: disable=no-member
-        btn.click(
-            fn=init_hg_test_data, inputs=inp, outputs=out
-        )
+        btn.click(fn=init_hg_test_data, inputs=inp, outputs=out)
 
         with gr.Row():
             inp = gr.Textbox(value="g.V().limit(10)", label="Gremlin query")
             out = gr.Textbox(label="Output")
         btn = gr.Button("Run gremlin query on HugeGraph")
         # pylint: disable=no-member
-        btn.click(
-            fn=run_gremlin_query, inputs=inp, outputs=out
-        )
+        btn.click(fn=run_gremlin_query, inputs=inp, outputs=out)
     app = gr.mount_gradio_app(app, hugegraph_llm, path="/")
     uvicorn.run(app, host="0.0.0.0", port=8001)
