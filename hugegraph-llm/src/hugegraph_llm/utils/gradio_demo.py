@@ -122,7 +122,7 @@ def get_hg_client():
 
 
 def init_config(
-        ip, port, user, pwd, graph, type, api_key, secret_key, llm_url, model_name, max_token
+    ip, port, user, pwd, graph, type, api_key, secret_key, llm_url, model_name, max_token
 ):
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     config_file = os.path.join(root_dir, "hugegraph_llm", "config", "config.ini")
@@ -170,7 +170,7 @@ if __name__ == "__main__":
                 gr.Textbox(value="", label="secret_key"),
                 gr.Textbox(
                     value="https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/"
-                          "chat/completions_pro?access_token=",
+                    "chat/completions_pro?access_token=",
                     label="llm_url",
                 ),
                 gr.Textbox(value="wenxin", label="model_name"),
