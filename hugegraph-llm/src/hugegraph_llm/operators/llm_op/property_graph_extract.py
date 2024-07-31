@@ -121,8 +121,8 @@ class PropertyGraphExtract:
         items = []
         try:
             property_graph = json.loads(longest_json_str)
-            vertex_label_set = {vertex["vertex_label"] for vertex in schema["vertices"]}
-            edge_label_set = {edge["edge_label"] for edge in schema["edges"]}
+            vertex_label_set = {vertex["name"] for vertex in schema["vertexlabels"]}
+            edge_label_set = {edge["name"] for edge in schema["edgelabels"]}
             for item in property_graph:
                 if not isinstance(item, dict):
                     log.warning("Invalid property graph item type %s.", type(item))
@@ -147,14 +147,14 @@ class PropertyGraphExtract:
         # filter vertex and edge with invalid properties
         filtered_items = []
         properties_map = {"vertex": {}, "edge": {}}
-        for vertex in schema["vertices"]:
-            properties_map["vertex"][vertex["vertex_label"]] = {
+        for vertex in schema["vertexlabels"]:
+            properties_map["vertex"][vertex["name"]] = {
                 "primary_keys": vertex["primary_keys"],
                 "nullable_keys": vertex["nullable_keys"],
                 "properties": vertex["properties"]
             }
-        for edge in schema["edges"]:
-            properties_map["edge"][edge["edge_label"]] = {
+        for edge in schema["edgelabels"]:
+            properties_map["edge"][edge["name"]] = {
                 "properties": edge["properties"]
             }
         log.info("properties_map: %s", properties_map)
