@@ -41,7 +41,7 @@ from hugegraph_llm.utils.hugegraph_utils import (
 from hugegraph_llm.utils.log import log
 from hugegraph_llm.utils.hugegraph_utils import get_hg_client
 from hugegraph_llm.utils.vector_index_utils import clean_vector_index
-from hugegraph_llm.demo.rag_web_api.rag_web_api import rag_web_http_api
+from hugegraph_llm.api.rag_api import rag_web_http_api
 
 
 def convert_bool_str(string):
@@ -142,8 +142,8 @@ def build_kg(file, schema, example_prompt, build_mode):  # pylint: disable=too-m
         log.error(e)
         raise gr.Error(str(e))
 
-
-def test_api_connection(url, method="GET", headers=None, body=None, auth=None):
+# todo: origin_call was created to stave off problems with gr.error that needed to be fixed
+def test_api_connection(url, method="GET", headers=None, body=None, auth=None, origin_call=None):
     # TODO: use fastapi.request / starlette instead? (Also add a try-catch here)
     log.debug("Request URL: %s", url)
     if method.upper() == "GET":
@@ -153,26 +153,22 @@ def test_api_connection(url, method="GET", headers=None, body=None, auth=None):
         response = requests.post(url, headers=headers, json=body, timeout=5, auth=auth)
     else:
         log.error("Unsupported method: %s", method)
-
     if response is None:
         # Unsupported method encountered
         return -1
 
-    # HTTP API return status
-    status_code = response.status_code
-
-    if 200 <= status_code < 300:
-        message = "Connection successful. Configured finished."
-        log.info(message)
-        gr.Info(message)
+    if 200 <= response.status_code < 300:
+        log.info("Connection successful. Configured finished.")
+        gr.Info("Connection successful. Configured finished.")
     else:
-        message = f"Connection failed with status code: {status_code}"
-        log.error(message)
-        gr.Error(message)
-    
-    return status_code
+        log.error("Connection failed with status code: %s", response.status_code)
+        # todo: How to remove raise and gr will render error
+        # pylint: disable=pointless-exception-statement
+        if origin_call == None:
+            raise gr.Error(f"Connection failed with status code: {response.status_code}")
+    return response.status_code
 
-def apply_embedding_configuration(arg1, arg2, arg3):
+def apply_embedding_configuration(arg1, arg2, arg3, origin_call=None):
     # Because of ollama, the qianfan_wenxin model is missing the test connect procedure,
     #  so it defaults to 200 so that there is no return value problem
     status_code = 200
@@ -183,7 +179,7 @@ def apply_embedding_configuration(arg1, arg2, arg3):
         settings.openai_embedding_model = arg3
         test_url = settings.openai_api_base + "/models"
         headers = {"Authorization": f"Bearer {arg1}"}
-        status_code = test_api_connection(test_url, headers=headers)
+        status_code = test_api_connection(test_url, headers=headers, origin_call=origin_call)
     elif embedding_option == "ollama":
         settings.ollama_host = arg1
         settings.ollama_port = int(arg2)
@@ -195,7 +191,7 @@ def apply_embedding_configuration(arg1, arg2, arg3):
     gr.Info("configured!")
     return status_code
 
-def apply_graph_configuration(ip, port, name, user, pwd, gs):
+def apply_graph_configuration(ip, port, name, user, pwd, gs, origin_call=None):
     settings.graph_ip = ip
     settings.graph_port = int(port)
     settings.graph_name = name
@@ -209,13 +205,13 @@ def apply_graph_configuration(ip, port, name, user, pwd, gs):
         test_url = f"http://{ip}:{port}/graphs/{name}/schema"
     auth = HTTPBasicAuth(user, pwd)
     # for http api return status
-    status_code = test_api_connection(test_url, auth=auth)
+    status_code = test_api_connection(test_url, auth=auth, origin_call=origin_call)
     settings.update_env()
     return status_code
 
 # Different llm models have different parameters,
 # so no meaningful argument names are given here
-def apply_llm_configuration(arg1, arg2, arg3, arg4):
+def apply_llm_configuration(arg1, arg2, arg3, arg4, origin_call=None):
     llm_option = settings.llm_type
     # Because of ollama, the qianfan_wenxin model is missing the test connect procedure,
     #  so it defaults to 200 so that there is no return value problem
@@ -227,7 +223,7 @@ def apply_llm_configuration(arg1, arg2, arg3, arg4):
         settings.openai_max_tokens = int(arg4)
         test_url = settings.openai_api_base + "/models"
         headers = {"Authorization": f"Bearer {arg1}"}
-        status_code = test_api_connection(test_url, headers=headers)
+        status_code = test_api_connection(test_url, headers=headers, origin_call=origin_call)
     elif llm_option == "qianfan_wenxin":
         settings.qianfan_api_key = arg1
         settings.qianfan_secret_key = arg2
@@ -472,7 +468,7 @@ if __name__ == "__main__":
     app = FastAPI()
 
     hugegraph_llm = create_hugegraph_llm_interface()
-    
+
     rag_web_http_api(app, graph_rag, apply_graph_configuration, apply_llm_configuration, apply_embedding_configuration)
 
     app = gr.mount_gradio_app(app, hugegraph_llm, path="/")
