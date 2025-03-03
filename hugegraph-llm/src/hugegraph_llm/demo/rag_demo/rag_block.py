@@ -18,7 +18,7 @@
 # pylint: disable=E1101
 
 import os
-from typing import Tuple, Literal, Optional
+from typing import AsyncGenerator, Tuple, Literal, Optional
 
 import gradio as gr
 import pandas as pd
@@ -26,6 +26,7 @@ from gradio.utils import NamedString
 
 from hugegraph_llm.config import resource_path, prompt, huge_settings, llm_settings
 from hugegraph_llm.operators.graph_rag_task import RAGPipeline
+from hugegraph_llm.operators.llm_op.answer_synthesize import AnswerSynthesize
 from hugegraph_llm.utils.log import log
 
 
@@ -110,33 +111,91 @@ def rag_answer(
         log.critical(e)
         raise gr.Error(f"An unexpected error occurred: {str(e)}")
 
-def rag_answer_streaming(text: str, answer_prompt: str, keywords_extract_prompt: str) -> Tuple:
+async def rag_answer_streaming(
+    text: str,
+    raw_answer: bool,
+    vector_only_answer: bool,
+    graph_only_answer: bool,
+    graph_vector_answer: bool,
+    graph_ratio: float,
+    rerank_method: Literal["bleu", "reranker"],
+    near_neighbor_first: bool,
+    custom_related_information: str,
+    answer_prompt: str,
+    keywords_extract_prompt: str,
+    gremlin_tmpl_num: Optional[int] = 2,
+    gremlin_prompt: Optional[str] = None,
+) -> AsyncGenerator[Tuple[str, str, str, str], None]:
     """
-    Generate an answer using the RAG (Retrieval-Augmented Generation) pipeline in streaming mode.
+    Generate an answer using the RAG (Retrieval-Augmented Generation) pipeline.
     1. Initialize the RAGPipeline.
-    2. Extract keywords and query the graph database.
+    2. Select vector search or graph search based on parameters.
     3. Merge, deduplicate, and rerank the results.
     4. Synthesize the final answer.
     5. Run the pipeline and return the results.
     """
 
-    rag = RAGPipeline()
-    rag.extract_keywords(extract_template=keywords_extract_prompt).keywords_to_vid().import_schema(
-        huge_settings.graph_name
-    ).query_graphdb()
-    rag.merge_dedup_rerank(
-        graph_ratio=0.6,
-        rerank_method="bleu",
-        near_neighbor_first=False,
+    gremlin_prompt = gremlin_prompt or prompt.gremlin_generate_prompt
+    should_update_prompt = (
+        prompt.default_question != text
+        or prompt.answer_prompt != answer_prompt
+        or prompt.keywords_extract_prompt != keywords_extract_prompt
+        or prompt.gremlin_generate_prompt != gremlin_prompt
+        or prompt.custom_rerank_info != custom_related_information
     )
+    if should_update_prompt:
+        prompt.custom_rerank_info = custom_related_information
+        prompt.default_question = text
+        prompt.answer_prompt = answer_prompt
+        prompt.keywords_extract_prompt = keywords_extract_prompt
+        prompt.gremlin_generate_prompt = gremlin_prompt
+        prompt.update_yaml_file()
+
+    vector_search = vector_only_answer or graph_vector_answer
+    graph_search = graph_only_answer or graph_vector_answer
+    if raw_answer is False and not vector_search and not graph_search:
+        gr.Warning("Please select at least one generate mode.")
+        yield "", "", "", ""
+        return
+
+    rag = RAGPipeline()
+    if vector_search:
+        rag.query_vector_index()
+    if graph_search:
+        rag.extract_keywords(extract_template=keywords_extract_prompt).keywords_to_vid().import_schema(
+            huge_settings.graph_name
+        ).query_graphdb(
+            num_gremlin_generate_example=gremlin_tmpl_num,
+            gremlin_prompt=gremlin_prompt,
+        )
+    # TODO: add more user-defined search strategies
+    rag.merge_dedup_rerank(
+        graph_ratio,
+        rerank_method,
+        near_neighbor_first,
+    )
+    # rag.synthesize_answer(raw_answer, vector_only_answer, graph_only_answer, graph_vector_answer, answer_prompt)
 
     try:
-        context = rag.run(verbose=True, query=text, vector_search=False, graph_search=True)
-
-        from hugegraph_llm.operators.llm_op.answer_synthesize import AnswerSynthesize
-
-        yield from AnswerSynthesize().run_streaming(context, answer_prompt)
-
+        context = rag.run(verbose=True, query=text, vector_search=vector_search, graph_search=graph_search)
+        if context.get("switch_to_bleu"):
+            gr.Warning("Online reranker fails, automatically switches to local bleu rerank.")
+        answer_synthesize = AnswerSynthesize(
+            raw_answer=raw_answer,
+            vector_only_answer=vector_only_answer,
+            graph_only_answer=graph_only_answer,
+            graph_vector_answer=graph_vector_answer,
+            prompt_template=answer_prompt,
+        )
+        async for context in answer_synthesize.run_streaming(context):
+            if context.get("switch_to_bleu"):
+                gr.Warning("Online reranker fails, automatically switches to local bleu rerank.")
+            yield (
+                context.get("raw_answer", ""),
+                context.get("vector_only_answer", ""),
+                context.get("graph_only_answer", ""),
+                context.get("graph_vector_answer", ""),
+            )
     except ValueError as e:
         log.critical(e)
         raise gr.Error(str(e))
@@ -207,7 +266,7 @@ def create_rag_block():
                 btn = gr.Button("Answer Question", variant="primary")
 
     btn.click(  # pylint: disable=no-member
-        fn=rag_answer,
+        fn=rag_answer_streaming,
         inputs=[
             inp,
             raw_radio,
@@ -223,33 +282,6 @@ def create_rag_block():
             example_num,
         ],
         outputs=[raw_out, vector_only_out, graph_only_out, graph_vector_out],
-    )
-
-    gr.Markdown("## (Testing) Streaming RAG Query")
-    # use graph_only as default to test streaming RAG query
-    with gr.Row():
-        with gr.Column(scale=2):
-            inp = gr.Textbox(value=prompt.default_question, label="Question", show_copy_button=True, lines=3)
-
-            gr.Markdown("Graph-only Answer", elem_classes="output-box-label")
-            stream_graph_out = gr.Markdown(elem_classes="output-box", show_copy_button=True,
-                                           latex_delimiters=[{"left":"$", "right":"$", "display":False}])
-
-            answer_prompt_input = gr.Textbox(
-                value=prompt.answer_prompt, label="Query Prompt", show_copy_button=True, lines=7
-            )
-            keywords_extract_prompt_input = gr.Textbox(
-                value=prompt.keywords_extract_prompt,
-                label="Keywords Extraction Prompt",
-                show_copy_button=True,
-                lines=7,
-            )
-        with gr.Column(scale=1):
-            stream_btn = gr.Button("(Streaming) Answer Question", variant="primary")
-    stream_btn.click(  # pylint: disable=no-member
-        fn=rag_answer_streaming,
-        inputs=[inp, answer_prompt_input, keywords_extract_prompt_input],
-        outputs=[stream_graph_out]
     )
 
     gr.Markdown(
